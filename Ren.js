@@ -26,12 +26,12 @@
   **********************/
 
   Root.fn =  {
-  	/**
-  	 * node 选择器
-  	 * @param  {String} s 匹配字符串，节点
-  	 * @param  {Object} n 父级节点元素
+    /**
+     * node 选择器
+     * @param  {String} s 匹配字符串，节点
+     * @param  {Object} n 父级节点元素
      * @return {Object} Root对象
-  	 */
+     */
   	dom: function(selector, node) {
 
   	  //处理Root(''),Root(null),Root(undefined)
@@ -52,41 +52,41 @@
   	    name = selector.substring(1);
 
   	    //用id匹配
-  	  	if ('#' === type) {
-  	  	  if (!node.getElementById(name)) {
-  	  	  	return;
-  	  	  }
-  	  	  result.push(node.getElementById(name));
+  	    if ('#' === type) {
+  	      if (!node.getElementById(name)) {
+  	      	return;
+  	      }
+  	      result.push(node.getElementById(name));
 
-  	  	//用className匹配
-  	  	} else if ('.' === type) {
+  	    //用className匹配
+  	    } else if ('.' === type) {
 
-  	  	  //用原生选择器
-  	  	  if (doc.getElmentsByClass) {
-  	  	  	result = node.getElmentsByClass(name);
-  	  	  } else {
-  	  	  	var collect = node.getElementsByTagName('*'), // 获取所有节点
-  	  	  	l = collect.length,
-  	  	  	i = 0,
+  	      //用原生选择器
+  	      if (doc.getElmentsByClass) {
+  	      	result = node.getElmentsByClass(name);
+  	      } else {
+  	      	var collect = node.getElementsByTagName('*'), // 获取所有节点
+  	      	l = collect.length,
+  	      	i = 0,
 
-  	  	  	className;
+  	      	className;
 
-  	  	  	for (; i<l; i++) {
-  	  	  	  className = collect[i].className;
+  	      	for (; i<l; i++) {
+  	      	  className = collect[i].className;
 
-  	  	  	  if (Root.arr(className.split(' ')).has(name)) {
-  	  	  	  	result.push(collect[i]);
-  	  	  	  }
-  	  	  	}
-  	  	  }
+  	      	  if (Root.arr(className.split(' ')).has(name)) {
+  	      	  	result.push(collect[i]);
+  	      	  }
+  	      	}
+  	      }
 
-  	  	//用tagName匹配
-  	  	} else {
+  	    //用tagName匹配
+  	    } else {
   	  	  Root.arr(node.getElementsByTagName(selector)).each(function(i) {
-  	  	  	result.push(this[i]);
-  	  	  });
-  	  	  this.size = result.length;
-  	  	}
+  	      	result.push(this[i]);
+  	      });
+  	      this.size = result.length;
+  	    }
   	  	
   	  } else if (selector.nodeType) { //封装节点
   	  	result.push(selector);
@@ -108,7 +108,7 @@
   	  //dom节点集合
   	  } else if (NodeList === array.constructor) {
   	    for (var i = 0, l = array.length; i < l; i++) {
-  	    	this.context.push(array[i]);
+  	      this.context.push(array[i]);
   	    }
   	  }
   	  this.length = this.context.length;
@@ -154,7 +154,7 @@
      * @return {Object} Root对象
   	 */
   	eq: function(i) {
-  		return Root.dom(this.context[i]);
+  	  return Root.dom(this.context[i]);
   	},
 
     /**
@@ -163,7 +163,7 @@
      * @return {Object} 原生dom对象
      */
   	single: function(i) {
-  		return this.context[i];
+  	  return this.context[i];
   	},
 
     /**
@@ -330,11 +330,11 @@
 
     //ie
     } else if (doc.attachEvent) {
-        doc.attachEvent("onreadystatechange", function() {
-        if (doc.readyState === "loaded" || doc.readyState === "complete") {
-          doc.detachEvent("onreadystatechange", arguments.callee);
-          fn.call(win);
-        }
+      doc.attachEvent("onreadystatechange", function() {
+      if (doc.readyState === "loaded" || doc.readyState === "complete") {
+        doc.detachEvent("onreadystatechange", arguments.callee);
+       fn.call(win);
+      }
     });
     }
 

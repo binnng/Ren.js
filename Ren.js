@@ -7,11 +7,13 @@
  */
 ;(function(win, doc, undefined) {
 
-  /**********************
+  /***********************************************************
    Root定义
-  **********************/
+  ***********************************************************/
 
-  //Root直接用，domReady的回调
+  /**
+   * Root直接调用，相当于jQ中的$(fn)用法，即domready所执行的方法
+   */
   var Root = function(callback) {
     if (Function !== callback.constructor) {
     	return;
@@ -21,9 +23,10 @@
     return this;
   };
 
-  /**********************
-   Root的构造函数类型
-  **********************/
+  /***********************************************************
+   Root的构造函数（即可以被封装的对象）类型
+   有dom，string，array类型
+  ***********************************************************/
 
   Root.fn =  {
     /**
@@ -32,7 +35,7 @@
      * @param  {Object} n 父级节点元素
      * @return {Object} Root对象
      */
-  	dom: function(selector, node) {
+    dom: function(selector, node) {
 
   	  //处理Root(''),Root(null),Root(undefined)
   	  if (!selector) {
@@ -46,26 +49,37 @@
   	  var result = [] // 结果集
   	  node = node || doc; //参照节点
 
-  	  //selector是字符串
+  	  /**
+       * selector为字符串，处理以下三种情况 
+       * Root('#id'), Root('.class'), Root('div') 
+       */
   	  if ('string' === typeof selector) {
   	    var type = selector.substring(0, 1),
   	    name = selector.substring(1);
 
-  	    //用id匹配
+  	    /**
+         * Root('#id') 
+         */
   	    if ('#' === type) {
   	      if (!node.getElementById(name)) {
   	      	return;
   	      }
   	      result.push(node.getElementById(name));
 
-  	    //用className匹配
+  	    /**
+         * Root('.class') 
+         */
   	    } else if ('.' === type) {
 
-  	      //用原生选择器
+  	      /**
+           * 如果浏览器本身就有getElmentsByClass方法，使用用原生选择器
+           * 否则先选择所有的DOM元素，然后去匹配每个DOM元素的className是否含有制定的className
+           */
   	      if (doc.getElmentsByClass) {
   	      	result = node.getElmentsByClass(name);
+
   	      } else {
-  	      	var collect = node.getElementsByTagName('*'), // 获取所有节点
+  	      	var collect = node.getElementsByTagName('*'),
   	      	l = collect.length,
   	      	i = 0,
 
@@ -80,17 +94,29 @@
   	      	}
   	      }
 
-  	    //用tagName匹配
+  	    /**
+         * Root('div') 
+         */
   	    } else {
   	  	  Root.arr(node.getElementsByTagName(selector)).each(function(i) {
   	      	result.push(this[i]);
   	      });
   	      this.size = result.length;
   	    }
-  	  	
-  	  } else if (selector.nodeType) { //封装节点
+
+  	  /**
+       * 如果selector传入的是原生的DOM元素，直接封装它为Root的DOM对象
+       */
+  	  } else if (selector.nodeType) {
   	  	result.push(selector);
-  	  };
+
+      /**
+       * 如果selector是封装后的Root的DOM对象，直接返回
+       */
+  	  } else if (selector instanceof Root.dom) {
+        result = selector.context;
+        return selector;
+      }
 
   	  this.context = result;
   	  this.size = result.length;
@@ -99,7 +125,7 @@
   	},
 
   	//处理数组
-  	arr: function(array) {
+    arr: function(array) {
   	  this.context = [];
   	  //普通数组
       if (Array === array.constructor) {
@@ -125,9 +151,18 @@
     }
   };
 
-  /*************************
+  /***********************************************************
    Root方法集合的扩展
-  *************************/
+   定义一切基于Root的DOM元素的方法
+
+   如果在某个结果集上直接获取某个属性的值，只返回第一个元素的值
+   如Root('p').html()，相当于Root('p').eq(0).html()
+
+   如果想要对结果集统一方法处理，请使用each来遍历，没有jQ中的隐式遍历
+   如Root('p').html('text')只会处理第一个元素，
+   Root('p').each(function(i) {Root(this).html('text')})
+   则可以处理所有元素
+  ***********************************************************/
 
   Root.fn.dom.prototype = {
 
@@ -140,7 +175,9 @@
       var node, that = this;
 
       Root.arr(this.context).each(function(i) {
-        //使用时，this指向的时原生的dom元素
+        /**
+         * 显示定义this指向原生的dom元素
+         */
         node = that.context[i];
         fn.call(node, i);
       });
@@ -154,7 +191,7 @@
      * @return {Object} Root对象
   	 */
   	eq: function(i) {
-  	  return Root.dom(this.context[i]);
+  	  return i < 0 ? Root.dom(this.context[this.length - i]) : Root.dom(this.context[i]);
   	},
 
     /**
@@ -162,8 +199,8 @@
      * @param  {Number} i 索引
      * @return {Object} 原生dom对象
      */
-  	single: function(i) {
-  	  return this.context[i];
+  	get: function(i) {
+  	  return i < 0 ? this.context[this.length - i] : this.context[i];
   	},
 
     /**
@@ -180,7 +217,6 @@
       var node = this.context[0];
 
   	  if (undefined === value) {
-        //只返回第一个元素的属性值
   	  	return node.getAttribute(attr);
 
   	  } else if ('string' === typeof attr) {
@@ -200,7 +236,6 @@
       var node = this.context[0];
 
       if (undefined === html) {
-        //只返回第一个元素的innerHTML
         return node.innerHTML;
 
       } else if ('string' === typeof html) {
@@ -240,7 +275,10 @@
     css: function(name, value) {
       var node = this.context[0];
 
-      //单独设置
+      /**
+       * 单独对css的某个属性设置
+       * o.css('height', '300px');
+       */
       if ('string' === typeof name) {
         if (undefined === value) {
           return (node.currentStyle? node.currentStyle : window.getComputedStyle(node, null))[name];
@@ -250,7 +288,10 @@
           return this;
         }
 
-      //统一设置
+      /**
+       * 同时对css多个属性设置
+       * o.css({width: '300px', height: '200px'})
+       */
       } else if (Object === name.constructor) {
         for (var i in name) {
           this.css(i, name[i]);
@@ -296,47 +337,66 @@
     }
   };
 
-  /**********************
-   Root的方法集合
-  **********************/
+  /***********************************************************
+   Root自有方法的定义
+   以上的Root.fn也属于此列，但它比较特殊，所以单独提上去了
+   包括一系列不基于任何dom元素的方法，如ajax，cookie，等
+  ***********************************************************/
   
-  //封装dom元素
+  /**
+   * 封装DOM元素，实例化一个Root的dom对象
+   */
   Root.dom = function (selector, node) {
   	return new Root.fn.dom(selector, node);
   };
 
-  //数组处理方法
+  /**
+   * 封装数组(Array)元素，实例化一个Root的array对象
+   */
   Root.arr = function(array) {
   	return new Root.fn.arr(array);
   };
 
-  //数组字符串方法
+  /**
+   * 封装字符串(String)元素，实例化一个Root的string对象
+   */
   Root.str = function(str) {
     return new Root.fn.str(str);
   };
 
-  //domReady
+  /**
+   * 文档加载完成（domready事件）
+   */
   Root.ready = function(fn) {
     if (Function !== fn.constructor) {
       return;
     }
 
-    //W3C
+    /**
+     * W3C下，文档加载完成时，会触发DOMContentLoaded事件，将回调注册到此事件中
+     */
     if (doc.addEventListener) {
       doc.addEventListener('DOMContentLoaded', function() {
         doc.removeEventListener("DOMContentLoaded", arguments.callee, false);
+        //显示的将回调函数中的this指向window
         fn.call(win);
       });
 
-    //ie
+    /**
+     * ie没有DOMContentLoaded事件，但有readystatechange事件
+     * readyState状态，有loading,loaded,complete三种
+     * readyState等于loaded或者complete，就解绑事件，防止被触发两次
+     */
     } else if (doc.attachEvent) {
       doc.attachEvent("onreadystatechange", function() {
-      if (doc.readyState === "loaded" || doc.readyState === "complete") {
-        doc.detachEvent("onreadystatechange", arguments.callee);
-       fn.call(win);
-      }
-    });
+        if (doc.readyState === "loaded" || doc.readyState === "complete") {
+          doc.detachEvent("onreadystatechange", arguments.callee);
+          fn.call(win);
+        }
+      });
     }
+
+    return this;
 
   };
 
@@ -352,9 +412,9 @@
 
 
 
-  /*************************
-   Root暴露
-  *************************/
+  /***********************************************************
+   Root暴露到window中
+  ***********************************************************/
 
   win.Ren = Root;
 

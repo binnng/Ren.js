@@ -1,0 +1,12 @@
+{
+  "name": "ren.js",
+  "description": "a mini Javascript library.",
+  "version": "1.0.0",
+  "main": "min.ren.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "homepage": "https://github.com/binnng/Ren.js",
+  "author": "老婆婆 <binnng@163.com>"
+}

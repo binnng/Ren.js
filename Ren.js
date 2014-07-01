@@ -275,7 +275,7 @@
        */
       if ('string' === typeof name) {
         if (undefined === value) {
-          return (node.currentStyle? node.currentStyle : window.getComputedStyle(node, null))[name];
+          return (node.currentStyle || win.getComputedStyle(node, null))[name];
         } else {
           node.style[name] = value;
 
@@ -444,7 +444,7 @@
     if (doc.addEventListener) {
       doc.addEventListener('DOMContentLoaded', function() {
         doc.removeEventListener("DOMContentLoaded", arguments.callee, false);
-        //显示的将回调函数中的this指向window
+        //显示的将回调函数中的this指向win
         fn.call(win);
       });
 
@@ -585,7 +585,7 @@
 
 
   /***********************************************************
-   Ren暴露到window中
+   Ren暴露到win中
   ***********************************************************/
 
   win.Ren = Ren;
